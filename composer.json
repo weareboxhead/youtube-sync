@@ -1,0 +1,44 @@
+{
+    "name": "boxhead/church-suite",
+    "description": "Communicate and process data to and from the ChurchSuite API",
+    "type": "craft-plugin",
+    "version": "1.0.0",
+    "keywords": [
+        "craft",
+        "cms",
+        "craftcms",
+        "craft-plugin",
+        "churchsuite"
+    ],
+    "support": {
+        "docs": "https://github.com/weareboxhead/church-suite/blob/master/README.md",
+        "issues": "https://github.com/weareboxhead/church-suite/issues"
+    },
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Boxhead",
+            "homepage": "https://boxhead.io"
+        }
+    ],
+    "require": {
+        "craftcms/cms": "^3.0.0-RC1"
+    },
+    "autoload": {
+        "psr-4": {
+          "boxhead\\churchsuite\\": "src/"
+        }
+    },
+    "extra": {
+        "name": "ChurchSuite",
+        "handle": "church-suite",
+        "schemaVersion": "1.0.0",
+        "hasCpSettings": true,
+        "hasCpSection": false,
+        "changelogUrl": "https://raw.githubusercontent.com/weareboxhead/church-suite/master/CHANGELOG.md",
+        "components": {
+            "churchSuiteService": "boxhead\\churchsuite\\services\\ChurchSuiteService"
+        },
+        "class": "boxhead\\churchsuite\\ChurchSuite"
+    }
+}
