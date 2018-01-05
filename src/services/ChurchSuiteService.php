@@ -280,7 +280,7 @@ class ChurchSuiteService extends Component
     private function saveFieldData($entry, $group)
     {
         // Enabled?
-        $entry->enabled = ($group->public_visible == "1") ? true : false;
+        $entry->enabled = ($group->embed_visible == "1") ? true : false;
 
         // Set the title
         $entry->title = $group->name;
