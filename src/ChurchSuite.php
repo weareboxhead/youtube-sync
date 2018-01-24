@@ -320,13 +320,75 @@ class ChurchSuite extends Plugin
 
         $smallGroupsEntryLayoutIds[] = $categoriesField->id;
 
+
+        // Create the Sites Field Group
+        Craft::info('Creating the Sites Field Group.', __METHOD__);
+
+        $fieldsService = Craft::$app->getFields();
+
+        $sitesFieldGroup = new FieldGroup();
+        $sitesFieldGroup->name = 'Sites';
+
+        if (!$fieldsService->saveGroup($sitesFieldGroup)) {
+            Craft::error('Could not save the Sites field group.', __METHOD__);
+
+            return false;
+        }
+
+        $sitesFieldGroupId = $sitesFieldGroup->id;
+
+        // Create the Basic Fields
+        Craft::info('Creating the Sites Fields.', __METHOD__);
+
+        $sitesFields = [
+            [
+                'handle'    => 'churchSuiteSiteId',
+                'name'      => 'Site Id',
+                'type'      => 'craft\fields\PlainText'
+            ]
+        ];
+
+        $sitesEntryLayoutIds = [];
+
+        foreach ($sitesFields as $sitesField) {
+            Craft::info('Creating the ' . $sitesField['name'] . ' field.', __METHOD__);
+
+            $field = $fieldsService->createField([
+                'groupId' => $sitesFieldGroupId,
+                'name' => $sitesField['name'],
+                'handle' => $sitesField['handle'],
+                'type' => $sitesField['type']
+            ]);
+
+            if (!$fieldsService->saveField($field)) {
+                Craft::error('Could not save the ' . $sitesField['name'] . ' field.', __METHOD__);
+
+                return false;
+            }
+
+            $sitesEntryLayoutIds[] = $field->id;
+        }
+
+        // Create the Sites Field Layout
+        Craft::info('Creating the Sites Field Layout.', __METHOD__);
+
+        $sitesFieldLayout = $fieldsService->assembleLayout(['Sites' => $sitesEntryLayoutIds], []);
+
+        if (!$sitesFieldLayout) {
+            Craft::error('Could not create the Sites Field Layout', __METHOD__);
+
+            return false;
+        }
+
+        $sitesFieldLayout->type = Category::class;
+
         // Create the Small Groups Sites category group
         Craft::info('Creating the Small Groups Sites category group.', __METHOD__);
 
         $sitesCategoryGroup = new CategoryGroup();
 
-        $sitesCategoryGroup->name = 'Small Group Sites';
-        $sitesCategoryGroup->handle = 'smallGroupSites';
+        $sitesCategoryGroup->name = 'Sites';
+        $sitesCategoryGroup->handle = 'sites';
 
         // Site-specific settings
         $allSiteSettings = [];
@@ -342,6 +404,8 @@ class ChurchSuite extends Plugin
         }
 
         $sitesCategoryGroup->setSiteSettings($allSiteSettings);
+
+        $sitesCategoryGroup->setFieldLayout($sitesFieldLayout);
 
         if (!Craft::$app->getCategories()->saveGroup($sitesCategoryGroup)) {
             Craft::error('Could not create the Small Groups Sites category group.', __METHOD__);

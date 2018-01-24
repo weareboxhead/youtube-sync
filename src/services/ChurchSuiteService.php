@@ -91,6 +91,11 @@ class ChurchSuiteService extends Component
             $this->updateEntry($this->localData['smallgroups'][$id], $this->remoteData['smallgroups'][$id]);
         }
 
+        // If we have local data that doesn't match with anything from remote we should close the local entry
+        foreach ($removedIds as $id) {
+            $this->closeEntry($this->localData['smallgroups'][$id]);
+        }
+
         return;
     }
 
@@ -277,6 +282,22 @@ class ChurchSuiteService extends Component
     }
 
 
+    private function closeEntry($entryId)
+    {
+        // Create a new instance of the Craft Entry Model
+        $entry = Entry::find()
+            ->sectionId($this->settings->sectionId)
+            ->id($entryId)
+            ->status(null)
+            ->one();
+
+        $entry->enabled = false;
+
+        // Re-save the entry
+        Craft::$app->elements->saveElement($entry);
+    }
+
+
     private function saveFieldData($entry, $group)
     {
         // Enabled?
@@ -318,7 +339,7 @@ class ChurchSuiteService extends Component
         // Set the signup start date as post date
         // $entry->postDate = DateTimeHelper::toDateTime(strtotime($group->signup_date_start));
 
-        // SAet the postdate to now
+        // Set the postdate to now
         $entry->postDate = DateTimeHelper::toDateTime(time());
 
         // Re-save the entry
@@ -397,8 +418,7 @@ class ChurchSuiteService extends Component
     private function parseSite($site)
     {
         // If there is no category group specified, don't do this
-        if (!$this->settings->sitesCategoryGroupId)
-        {
+        if (!$this->settings->sitesCategoryGroupId) {
             return;
         }
 
@@ -411,19 +431,19 @@ class ChurchSuiteService extends Component
 
         // For each category
         foreach ($query as $category) {
-            // Add its slug and id to our array
-            $categories[$category->slug] = $category->id;
+            // Add its churchSuiteSiteId and id to our array
+            $categories[$category->churchSuiteSiteId] = $category->id;
         }
 
         $returnIds = [];
 
-        $siteSlug = ElementHelper::createSlug($site->name);
+        // $siteSlug = ElementHelper::createSlug($site->name);
         $categorySet = false;
 
         // Does this site exist already as a category?
-        foreach ($categories as $slug => $id) {
+        foreach ($categories as $churchSuiteSiteId => $id) {
             // Site already a category
-            if ($siteSlug === $slug) {
+            if ($churchSuiteSiteId == $site->id) {
                 $returnIds[] = $id;
                 $categorySet = true;
 
@@ -438,6 +458,10 @@ class ChurchSuiteService extends Component
 
             $newCategory->title = $site->name;
             $newCategory->groupId = $this->settings->sitesCategoryGroupId;
+
+            $newCategory->setFieldValues([
+                'churchSuiteSiteId' => $site->id
+            ]);
 
             // Save the category!
             if (!Craft::$app->elements->saveElement($newCategory)) {
