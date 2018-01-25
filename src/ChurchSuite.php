@@ -220,6 +220,11 @@ class ChurchSuite extends Plugin
                 'type'      => 'craft\fields\PlainText'
             ],
             [
+                'handle'    => 'smallGroupLeaders',
+                'name'      => 'Small Group Leaders',
+                'type'      => 'craft\fields\PlainText'
+            ],
+            [
                 'handle'    => 'smallGroupNumberMembers',
                 'name'      => 'Number of Members',
                 'type'      => 'craft\fields\Number'

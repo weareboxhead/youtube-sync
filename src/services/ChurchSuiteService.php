@@ -306,6 +306,8 @@ class ChurchSuiteService extends Component
         // Set the title
         $entry->title = $group->name;
 
+        $leaders = $this->getLeaders($group);
+
         // Set the other content
         $entry->setFieldValues([
             'smallGroupId'              => $group->id,
@@ -321,6 +323,7 @@ class ChurchSuiteService extends Component
             'smallGroupSignupEndDate'   => $group->signup_date_end,
             'smallGroupCapacity'        => $group->signup_capacity,
             'smallGroupNumberMembers'   => $group->no_members,
+            'smallGroupLeaders'         => $leaders,
             'smallGroupAddress'         => (isset($group->location->address)) ? $group->location->address : '',
             'smallGroupAddressName'     => (isset($group->location->address_name)) ? $group->location->address_name : '',
             'smallGroupLatitude'        => (isset($group->location->latitude)) ? $group->location->latitude : '',
@@ -344,6 +347,23 @@ class ChurchSuiteService extends Component
 
         // Re-save the entry
         Craft::$app->elements->saveElement($entry);
+    }
+
+    private function getLeaders($group)
+    {
+        $leaders = '';
+
+        if (!isset($group->custom_fields)) {
+            return $leaders;
+        }
+
+        foreach ($group->custom_fields as $custom_field) {
+            if ($custom_field->name === 'Leaders') {
+                $leaders = $custom_field->value;
+            }
+        }
+
+        return $leaders;
     }
 
 
