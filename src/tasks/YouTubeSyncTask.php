@@ -1,22 +1,22 @@
 <?php
 /**
- * ChurchSuite plugin for Craft CMS 3.x
+ * YouTubeSync plugin for Craft CMS 3.x
  *
- * Communicate and process data from the ChurchSuite API
+ * Communicate and process data from the YouTubeSync API
  *
  * @link      https://boxhead.io
  * @copyright Copyright (c) 2018 Boxhead
  */
 
-namespace boxhead\churchsuite\tasks;
+namespace boxhead\youtubesync\tasks;
 
-use boxhead\churchsuite\ChurchSuite;
+use boxhead\youtubsync\YouTubeSync;
 
 use Craft;
 use craft\base\Task;
 
 /**
- * ChurchSuiteTask Task
+ * YouTubeSyncTask Task
  *
  * Tasks let you run background processing for things that take a long time,
  * dividing them up into steps.  For example, Asset Transforms are regenerated
@@ -29,20 +29,20 @@ use craft\base\Task;
  *
  * The pattern used to queue up a task for running is:
  *
- * use boxhead\churchsuite\tasks\ChurchSuiteTask as ChurchSuiteTaskTask;
+ * use boxhead\youtubesync\tasks\YouTubeSyncTask as YouTubeSyncTaskTask;
  *
  * $tasks = Craft::$app->getTasks();
- * if (!$tasks->areTasksPending(ChurchSuiteTaskTask::class)) {
- *     $tasks->createTask(ChurchSuiteTaskTask::class);
+ * if (!$tasks->areTasksPending(YouTubeSyncTaskTask::class)) {
+ *     $tasks->createTask(YouTubeSyncTaskTask::class);
  * }
  *
  * https://craftcms.com/classreference/services/TasksService
  *
  * @author    Boxhead
- * @package   ChurchSuite
+ * @package   YouTubeSync
  * @since     1.0.0
  */
-class ChurchSuiteTask extends Task
+class YouTubeSyncTask extends Task
 {
     // Public Properties
     // =========================================================================
@@ -57,8 +57,8 @@ class ChurchSuiteTask extends Task
 
     // Private Properties
     // =========================================================================
-    private $_smallGroupsToUpdate = [];
-    private $_localSmallGroupData;
+    private $_videosToUpdate = [];
+    private $_localVideoData;
 
     // Public Methods
     // =========================================================================
@@ -88,23 +88,23 @@ class ChurchSuiteTask extends Task
      */
     public function getTotalSteps(): int
     {
-        Craft::Info('Update Small Groups: Get Total Steps', __METHOD__);
+        Craft::Info('Update YouTube Videos: Get Total Steps', __METHOD__);
 
         // Pass false to get all small groups
         // Limited to most recent 1000
-        $this->_localSmallGroupData = ChurchSuite::$plugin->churchSuiteService->getLocalData(1000);
+        $this->_localVideoData = YouTubeSync::$plugin->youTubeSyncService->getLocalData(1000);
 
-        if (! $this->_localSmallGroupData) {
-            Craft::Info('Update Small Groups: No local data to work with', __METHOD__);
+        if (! $this->_localVideoData) {
+            Craft::Info('Update YouTube Videos: No local data to work with', __METHOD__);
         }
 
-        foreach ($this->_localSmallGroupData['smallGroups'] as $groupId => $entryId) {
-            $this->_smallGroupsToUpdate[] = $entryId;
+        foreach ($this->_localVideoData['videos'] as $groupId => $entryId) {
+            $this->_videosToUpdate[] = $entryId;
         }
 
-        Craft::Info('Update Small Groups - Total Steps: ' . count($this->_smallGroupsToUpdate), __METHOD__);
+        Craft::Info('Update YouTube Videos - Total Steps: ' . count($this->_videosToUpdate), __METHOD__);
 
-        return count($this->_smallGroupsToUpdate);
+        return count($this->_videosToUpdate);
     }
 
     /**
@@ -116,12 +116,12 @@ class ChurchSuiteTask extends Task
      */
     public function runStep(int $step)
     {
-        Craft::Info('Update Small Groups: Running Step ' . $step, __METHOD__);
+        Craft::Info('Update YouTube Video: Running Step ' . $step, __METHOD__);
 
-        $id = $this->_smallGroupsToUpdate[$step];
+        $id = $this->_videosToUpdate[$step];
 
         // Update existing DB entry
-        ChurchSuite::$plugin->churchSuiteService->updateEntry($id);
+        YouTubeSync::$plugin->youTubeSyncService->updateEntry($id);
 
         return true;
     }
@@ -134,7 +134,7 @@ class ChurchSuiteTask extends Task
      */
     public function getDescription()
     {
-        return 'Update local ChurchSuite data';
+        return 'Update local YouTubeSync data';
     }
 
 
@@ -148,6 +148,6 @@ class ChurchSuiteTask extends Task
      */
     protected function defaultDescription(): string
     {
-        return Craft::t('church-suite', 'ChurchSuiteTask');
+        return Craft::t('youtube-sync', 'YouTubeSyncTask');
     }
 }

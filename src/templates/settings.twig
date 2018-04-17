@@ -1,14 +1,14 @@
 {# @var craft \craft\web\twig\variables\CraftVariable #}
 {#
 /**
- * ChurchSuite plugin for Craft CMS 3.x
+ * YouTubeSync plugin for Craft CMS 3.x
  *
- * ChurchSuite Settings.twig
+* YouTubeSync Settings.twig
  *
  * @author    Boxhead
  * @copyright Copyright (c) 2018 Boxhead
  * @link      https://boxhead.io
- * @package   ChurchSuite
+ * @package   YouTubeSync
  * @since     1.0.0
  */
 #}
@@ -18,8 +18,8 @@
 {# {% do view.registerAssetBundle("boxhead\\churchsuite\\assetbundles\\churchsuite\\ChurchSuiteAsset") %} #}
 
 {{ forms.textField({
-    label: 'ChurchSuite API Key',
-    instructions: 'Enter the API key you have been issued by ChurchSuite',
+    label: 'Google Developer API Key',
+    instructions: 'Enter the API key you have been issued from https://console.developers.google.com',
     id: 'apiKey',
     name: 'apiKey',
     value: settings['apiKey']})
@@ -40,15 +40,8 @@
 }}
 
 {{ forms.textField({
-    label: 'Sites Category Group ID',
-    id: 'sitesCategoryGroupId',
-    name: 'sitesCategoryGroupId',
-    value: settings['sitesCategoryGroupId']})
-}}
-
-{{ forms.textField({
-    label: 'General Category Group ID',
-    id: 'categoryGroupId',
-    name: 'categoryGroupId',
-    value: settings['categoryGroupId']})
+    label: 'YouTube Playlists Category Group ID',
+    id: 'youtubePlaylistsCategoryGroupId',
+    name: 'youtubePlaylistsCategoryGroupId',
+    value: settings['youtubePlaylistsCategoryGroupId']})
 }}

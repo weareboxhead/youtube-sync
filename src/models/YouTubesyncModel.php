@@ -1,22 +1,22 @@
 <?php
 /**
- * ChurchSuite plugin for Craft CMS 3.x
+ * YouTubeSync plugin for Craft CMS 3.x
  *
- * Communicate and process data from the ChurchSuite API
+ * Communicate and process data from the YouTube Data API
  *
  * @link      https://boxhead.io
  * @copyright Copyright (c) 2018 Boxhead
  */
 
-namespace boxhead\churchsuite\models;
+namespace boxhead\youtubesync\models;
 
-use boxhead\churchsuite\ChurchSuite;
+use boxhead\youtubesync\YouTubeSync;
 
 use Craft;
 use craft\base\Model;
 
 /**
- * ChurchSuiteModel Model
+ * YouTubeSyncModel Model
  *
  * Models are containers for data. Just about every time information is passed
  * between services, controllers, and templates in Craft, it’s passed via a model.
@@ -24,10 +24,10 @@ use craft\base\Model;
  * https://craftcms.com/docs/plugins/models
  *
  * @author    Boxhead
- * @package   ChurchSuite
+ * @package   YouTubeSync
  * @since     1.0.0
  */
-class ChurchSuiteModel extends Model
+class YouTubeSyncModel extends Model
 {
     // Public Properties
     // =========================================================================

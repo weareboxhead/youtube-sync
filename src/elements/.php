@@ -1,16 +1,16 @@
 <?php
 /**
- * ChurchSuite plugin for Craft CMS 3.x
+ * YouTubeSync plugin for Craft CMS 3.x
  *
- * Communicate and process data from the ChurchSuite API
+ * Communicate and process data from the YouTube Data API
  *
  * @link      https://boxhead.io
  * @copyright Copyright (c) 2018 Boxhead
  */
 
-namespace boxhead\churchsuite\elements;
+namespace boxhead\youtubesync\elements;
 
-use boxhead\churchsuite\ChurchSuite;
+use boxhead\youtubesync\YouTube;
 
 use Craft;
 use craft\base\Element;
@@ -58,7 +58,7 @@ use craft\elements\db\ElementQueryInterface;
  * http://pixelandtonic.com/blog/craft-element-types
  *
  * @author    Boxhead
- * @package   ChurchSuite
+ * @package   YouTube
  * @since     1.0.0
  */
 class  extends Element
@@ -83,7 +83,7 @@ class  extends Element
      */
     public static function displayName(): string
     {
-        return Craft::t('church-suite', '');
+        return Craft::t('youtube-sync', '');
     }
 
     /**

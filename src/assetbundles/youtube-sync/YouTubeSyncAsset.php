@@ -1,21 +1,21 @@
 <?php
 /**
- * ChurchSuite plugin for Craft CMS 3.x
+ * YouTubeSync plugin for Craft CMS 3.x
  *
- * Communicate and process data from the ChurchSuite API
+ * Communicate and process data from the YouTube Data API
  *
  * @link      https://boxhead.io
  * @copyright Copyright (c) 2018 Boxhead
  */
 
-namespace boxhead\churchsuite\assetbundles\ChurchSuite;
+namespace boxhead\youtubesync\assetbundles\YouTubeSync;
 
 use Craft;
 use craft\web\AssetBundle;
 use craft\web\assets\cp\CpAsset;
 
 /**
- * ChurchSuiteAsset AssetBundle
+ * YouTubeSyncAsset AssetBundle
  *
  * AssetBundle represents a collection of asset files, such as CSS, JS, images.
  *
@@ -29,10 +29,10 @@ use craft\web\assets\cp\CpAsset;
  * http://www.yiiframework.com/doc-2.0/guide-structure-assets.html
  *
  * @author    Boxhead
- * @package   ChurchSuite
+ * @package   YouTubeSync
  * @since     1.0.0
  */
-class ChurchSuiteAsset extends AssetBundle
+class YouTubeSyncAsset extends AssetBundle
 {
     // Public Methods
     // =========================================================================
@@ -43,7 +43,7 @@ class ChurchSuiteAsset extends AssetBundle
     public function init()
     {
         // define the path that your publishable resources live
-        $this->sourcePath = "@boxhead/churchsuite/assetbundles/churchsuite/dist";
+        $this->sourcePath = "@boxhead/youtubesync/assetbundles/youtube-sync/dist";
 
         // define the dependencies
         $this->depends = [
@@ -53,11 +53,11 @@ class ChurchSuiteAsset extends AssetBundle
         // define the relative path to CSS/JS files that should be registered with the page
         // when this asset bundle is registered
         $this->js = [
-            'js/ChurchSuite.js',
+            'js/YouTubeSync.js',
         ];
 
         $this->css = [
-            'css/ChurchSuite.css',
+            'css/YouTubeSync.css',
         ];
 
         parent::init();

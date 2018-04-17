@@ -1,22 +1,22 @@
 <?php
 /**
- * ChurchSuite plugin for Craft CMS 3.x
+ * YouTubeSync plugin for Craft CMS 3.x
  *
- * Communicate and process data from the ChurchSuite API
+ * Communicate and process data from the YouTube Data API
  *
  * @link      https://boxhead.io
  * @copyright Copyright (c) 2018 Boxhead
  */
 
-namespace boxhead\churchsuite\models;
+namespace boxhead\youtubesync\models;
 
-use boxhead\churchsuite\ChurchSuite;
+use boxhead\youtubesync\YouTubeSync;
 
 use Craft;
 use craft\base\Model;
 
 /**
- * ChurchSuite Settings Model
+ * YouTubeSync Settings Model
  *
  * This is a model used to define the plugin's settings.
  *
@@ -26,7 +26,7 @@ use craft\base\Model;
  * https://craftcms.com/docs/plugins/models
  *
  * @author    Boxhead
- * @package   ChurchSuite
+ * @package   YouTubeSync
  * @since     1.0.0
  */
 class Settings extends Model
@@ -42,8 +42,7 @@ class Settings extends Model
     public $apiKey = '';
     public $sectionId = '';
     public $entryTypeId = '';
-    public $categoryGroupId = '';
-    public $sitesCategoryGroupId = '';
+    public $youtubePlaylistsCategoryGroupId = '';
 
     // Public Methods
     // =========================================================================
@@ -64,8 +63,7 @@ class Settings extends Model
             ['apiKey', 'required'],
             ['sectionId', 'required'],
             ['entryTypeId', 'required'],
-            ['categoryGroupId', 'required'],
-            ['sitesCategoryGroupId', 'required'],
+            ['youtubePlaylistsCategoryGroupId', 'required'],
         ];
     }
 }

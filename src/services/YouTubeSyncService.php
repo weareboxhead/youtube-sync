@@ -1,16 +1,16 @@
 <?php
 /**
- * ChurchSuite plugin for Craft CMS 3.x
+ * YouTubeSync plugin for Craft CMS 3.x
  *
- * Communicate and process data from the ChurchSuite API
+ * Communicate and process data from the YouTube Data API
  *
  * @link      https://boxhead.io
  * @copyright Copyright (c) 2018 Boxhead
  */
 
-namespace boxhead\churchsuite\services;
+namespace boxhead\youtubesync\services;
 
-use boxhead\churchsuite\ChurchSuite;
+use boxhead\youtubesync\YouTubeSync;
 
 use Craft;
 use craft\base\Component;
@@ -20,10 +20,11 @@ use craft\helpers\ElementHelper;
 use craft\helpers\DateTimeHelper;
 
 use GuzzleHttp\Client;
+use GuzzleHttp\Exception\BadResponseException;
 
 
 /**
- * ChurchSuiteService Service
+ * YouTubeSyncService Service
  *
  * All of your plugin’s business logic should go in services, including saving data,
  * retrieving data, etc. They provide APIs that your controllers, template variables,
@@ -32,13 +33,13 @@ use GuzzleHttp\Client;
  * https://craftcms.com/docs/plugins/services
  *
  * @author    Boxhead
- * @package   ChurchSuite
+ * @package   YouTubeSync
  * @since     1.0.0
  */
-class ChurchSuiteService extends Component
+class YouTubeSyncService extends Component
 {
     private $settings;
-    private $baseUrl = 'https://api.churchsuite.co.uk/v1/';
+    // private $baseUrl = 'https://api.churchsuite.co.uk/v1/';
     private $remoteData;
     private $localData;
 
@@ -51,13 +52,13 @@ class ChurchSuiteService extends Component
      *
      * From any other plugin file, call it like this:
      *
-     *     ChurchSuite::$plugin->churchSuiteService->sync()
+     *     YouTubeSync::$plugin->YouTubeSyncService->sync()
      *
      * @return mixed
      */
     public function sync()
     {
-        $this->settings = ChurchSuite::$plugin->getSettings();
+        $this->settings = YouTubeSync::$plugin->getSettings();
 
         // Check for all required settings
         $this->checkSettings();
@@ -68,7 +69,7 @@ class ChurchSuiteService extends Component
         // Get local Small Group data
         $this->localData = $this->getLocalData();
 
-        Craft::info('ChurchSuite: Compare remote data with local data', __METHOD__);
+        Craft::info('YouTubeSync: Compare remote data with local data', __METHOD__);
 
         // Determine which entries we are missing by id
         $missingIds = array_diff($this->remoteData['ids'], $this->localData['ids']);
@@ -79,21 +80,21 @@ class ChurchSuiteService extends Component
         // Determine which entries need updating (all active entries which we aren't about to create)
         $updatingIds = array_diff($this->remoteData['ids'], $missingIds);
 
-        Craft::info('ChurchSuite: Create entries for all new Small Groups', __METHOD__);
+        Craft::info('YouTubeSync: Create entries for all new Small Groups', __METHOD__);
 
         // Create all missing small groups
         foreach ($missingIds as $id) {
-           $this->createEntry($this->remoteData['smallgroups'][$id]);
+           $this->createEntry($this->remoteData['videos'][$id]);
         }
 
         // Update all small groups that have been previously saved to keep our data in sync
         foreach ($updatingIds as $id) {
-            $this->updateEntry($this->localData['smallgroups'][$id], $this->remoteData['smallgroups'][$id]);
+            $this->updateEntry($this->localData['videos'][$id], $this->remoteData['videos'][$id]);
         }
 
         // If we have local data that doesn't match with anything from remote we should close the local entry
         foreach ($removedIds as $id) {
-            $this->closeEntry($this->localData['smallgroups'][$id]);
+            $this->closeEntry($this->localData['videos'][$id]);
         }
 
         return;
@@ -107,37 +108,51 @@ class ChurchSuiteService extends Component
 
     private function checkSettings()
     {
+        // Check our Plugin's settings for the clientId
+        // if ($this->settings->clientId === null) {
+        //     Craft::error('YouTubeSync: No Client ID provided in settings', __METHOD__);
+
+        //     return false;
+        // }
+
+        // // Check our Plugin's settings for the clientSecret
+        // if ($this->settings->clientSecret === null) {
+        //     Craft::error('YouTubeSync: No Client Secret provided in settings', __METHOD__);
+
+        //     return false;
+        // }
+
         // Check our Plugin's settings for the apiKey
         if ($this->settings->apiKey === null) {
-            Craft::error('ChurchSuite: No API Key provided in settings', __METHOD__);
+            Craft::error('YouTubeSync: No API Key provided in settings', __METHOD__);
+
+            return false;
+        }
+
+        // Check our Plugin's settings for the channelId
+        if ($this->settings->channelId === null) {
+            Craft::error('YouTubeSync: No Youtube Channel ID provided in settings', __METHOD__);
 
             return false;
         }
 
         if (!$this->settings->sectionId)
         {
-            Craft::error('ChurchSuite: No Section ID provided in settings', __METHOD__);
+            Craft::error('YouTubeSync: No Section ID provided in settings', __METHOD__);
 
             return false;
         }
 
         if (!$this->settings->entryTypeId)
         {
-            Craft::error('ChurchSuite: No Entry Type ID provided in settings', __METHOD__);
+            Craft::error('YouTubeSync: No Entry Type ID provided in settings', __METHOD__);
 
             return false;
         }
 
-        if (!$this->settings->categoryGroupId)
+        if (!$this->settings->youtubePlaylistsCategoryGroupId)
         {
-            Craft::error('ChurchSuite: No General Category Group ID provided in settings', __METHOD__);
-
-            return false;
-        }
-
-        if (!$this->settings->sitesCategoryGroupId)
-        {
-            Craft::error('ChurchSuite: No Sites Category Group ID provided in settings', __METHOD__);
+            Craft::error('YouTubeSync: No YouTube Playlists Category Group ID provided in settings', __METHOD__);
 
             return false;
         }
@@ -146,9 +161,9 @@ class ChurchSuiteService extends Component
 
     private function getAPIData()
     {
-        Craft::info('ChurchSuite: Begin sync with API', __METHOD__);
+        Craft::info('YouTubeSync: Begin sync with API', __METHOD__);
 
-        // Get all ChurchSuite small groups
+        // Get all YouTube Playlists for the channel specified in settings
         $client = new Client();
 
         $response = $client->request('GET', $this->baseUrl . 'smallgroups/groups', [
@@ -494,5 +509,55 @@ class ChurchSuiteService extends Component
         }
 
         return $returnIds;
+    }
+
+    
+    /**
+     * Returns an authenticated Guzzle client
+     *
+     * @return Client
+     */
+    private function createClient()
+    {
+        $options = [
+            'base_uri' => 'https://www.googleapis.com/youtube/v3/',
+            'query'   => [
+                'key' => $this->settings->clientKey
+            ]
+        ];
+
+        return new Client($options);
+    }
+
+    /**
+     * Performs a GET request to the YouTube Data API
+     * 
+     * @param       $uri
+     * @param array $options
+     *
+     * @return array
+     */
+    private function get($uri, array $options = [])
+    {
+        $client = $this->createClient();
+
+        try {
+            $response = $client->request('GET', $uri, $options);
+            $body = (string) $response->getBody();
+            $data = Json::decode($body);
+        } catch (BadResponseException $badResponseException) {
+            $response = $badResponseException->getResponse();
+            $body = (string) $response->getBody();
+
+            try {
+                $data = Json::decode($body);
+            } catch (JsonParsingException $e) {
+                throw $badResponseException;
+            }
+        }
+
+        // $this->checkResponse($response, $data);
+
+        return $data;
     }
 }

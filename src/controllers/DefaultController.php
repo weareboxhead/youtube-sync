@@ -1,17 +1,17 @@
 <?php
 /**
- * ChurchSuite plugin for Craft CMS 3.x
+ * YouTubeSync plugin for Craft CMS 3.x
  *
- * Communicate and process data from the ChurchSuite API
+ * Communicate and process data from the YouTube Data API
  *
  * @link      https://boxhead.io
  * @copyright Copyright (c) 2018 Boxhead
  */
 
-namespace boxhead\churchsuite\controllers;
+namespace boxhead\youtubesync\controllers;
 
-use boxhead\churchsuite\ChurchSuite;
-use boxhead\churchsuite\tasks\ChurchSuiteTask as ChurchSuiteTaskTask;
+use boxhead\youtubesync\YouTubeSync;
+use boxhead\youtubesync\tasks\YouTubeSyncTask as YouTubeSyncTaskTask;
 
 use Craft;
 use craft\web\Controller;
@@ -33,7 +33,7 @@ use craft\web\Controller;
  * https://craftcms.com/docs/plugins/controllers
  *
  * @author    Boxhead
- * @package   ChurchSuite
+ * @package   YouTubeSync
  * @since     1.0.0
  */
 class DefaultController extends Controller
@@ -54,32 +54,32 @@ class DefaultController extends Controller
 
     /**
      * Handle a request going to our plugin's SyncWithRemote action URL,
-     * e.g.: actions/church-suite/sync-with-remote
+     * e.g.: actions/youtube-sync/sync-with-remote
      *
      * @return mixed
      */
     public function actionSyncWithRemote() {
-        ChurchSuite::$plugin->churchSuiteService->sync();
+        YouTubeSync::$plugin->youtTubeSyncService->sync();
 
-        $result = 'Syncing remote ChurchSuite data';
+        $result = 'Syncing remote YouTube data';
 
         return $result;
     }
 
     /**
      * Handle a request going to our plugin's actionUpdateLocalData URL,
-     * e.g.: actions/church-suite/default/update-local-data
+     * e.g.: actions/youtube-sync/default/update-local-data
      *
      * @return mixed
      */
     public function actionUpdateLocalData() {
         $tasks = Craft::$app->getTasks();
 
-        if (!$tasks->areTasksPending(ChurchSuiteTaskTask::class)) {
-            $tasks->createTask(ChurchSuiteTaskTask::class);
+        if (!$tasks->areTasksPending(CYouTubeSyncTaskTask::class)) {
+            $tasks->createTask(YouTubeSyncTaskTask::class);
         }
 
-        $result = 'Updating Local ChurchSuite Data';
+        $result = 'Updating Local YouTube Data';
 
         return $result;
     }
