@@ -1,12 +1,10 @@
-# ChurchSuite plugin for Craft CMS 3.x
+# YouTube Sync plugin for Craft CMS 3.x
 
-Communicate and process data to and from the ChurchSuite API
-
-![Screenshot](resources/img/plugin-logo.png)
+Communicate and process data from the YouTube Data API
 
 ## Requirements
 
-This plugin requires Craft CMS 3.0.0-beta.23 or later.
+This plugin requires Craft CMS 3.0.0 or later.
 
 ## Installation
 
@@ -18,23 +16,23 @@ To install the plugin, follow these instructions.
 
 2. Then tell Composer to load the plugin:
 
-        composer require weareboxhead/church-suite
+        composer require weareboxhead/youtube-sync
 
-3. In the Control Panel, go to Settings → Plugins and click the “Install” button for ChurchSuite.
+3. In the Control Panel, go to Settings → Plugins and click the “Install” button for YouTube Sync.
 
-## ChurchSuite Overview
-
--Insert text here-
-
-## Configuring ChurchSuite
+## YouTube Sync Overview
 
 -Insert text here-
 
-## Using ChurchSuite
+## Configuring YouTube Sync
 
 -Insert text here-
 
-## ChurchSuite Roadmap
+## Using YouTube Sync
+
+-Insert text here-
+
+## YouTube Sync Roadmap
 
 Some things to do, and ideas for potential features:
 

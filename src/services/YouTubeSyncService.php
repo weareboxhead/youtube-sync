@@ -18,9 +18,11 @@ use craft\elements\Entry;
 use craft\elements\Category;
 use craft\helpers\ElementHelper;
 use craft\helpers\DateTimeHelper;
-
-use GuzzleHttp\Client;
-use GuzzleHttp\Exception\BadResponseException;
+use Google_Client;
+use Google_Service_YouTube;
+use DateInterval;
+// use GuzzleHttp\Client;
+// use GuzzleHttp\Exception\BadResponseException;
 
 
 /**
@@ -39,9 +41,9 @@ use GuzzleHttp\Exception\BadResponseException;
 class YouTubeSyncService extends Component
 {
     private $settings;
-    // private $baseUrl = 'https://api.churchsuite.co.uk/v1/';
     private $remoteData;
     private $localData;
+    private $service;
 
     // Public Methods
     // =========================================================================
@@ -63,65 +65,43 @@ class YouTubeSyncService extends Component
         // Check for all required settings
         $this->checkSettings();
 
-        // Request data form the API
-        $this->remoteData = $this->getAPIData();
+        // Setup the YouTube connection
+        $this->createService();
 
-        // Get local Small Group data
+        // Get local video entry data
         $this->localData = $this->getLocalData();
 
-        Craft::info('YouTubeSync: Compare remote data with local data', __METHOD__);
-
-        // Determine which entries we are missing by id
-        $missingIds = array_diff($this->remoteData['ids'], $this->localData['ids']);
+        // Request & sync data from the API
+        $this->remoteData = $this->getAPIData();
 
         // Determine which entries we shouldn't have by id
         $removedIds = array_diff($this->localData['ids'], $this->remoteData['ids']);
-
-        // Determine which entries need updating (all active entries which we aren't about to create)
-        $updatingIds = array_diff($this->remoteData['ids'], $missingIds);
-
-        Craft::info('YouTubeSync: Create entries for all new Small Groups', __METHOD__);
-
-        // Create all missing small groups
-        foreach ($missingIds as $id) {
-           $this->createEntry($this->remoteData['videos'][$id]);
-        }
-
-        // Update all small groups that have been previously saved to keep our data in sync
-        foreach ($updatingIds as $id) {
-            $this->updateEntry($this->localData['videos'][$id], $this->remoteData['videos'][$id]);
-        }
 
         // If we have local data that doesn't match with anything from remote we should close the local entry
         foreach ($removedIds as $id) {
             $this->closeEntry($this->localData['videos'][$id]);
         }
 
+        Craft::error('YouTubeSync: Finished', __METHOD__);
+
         return;
     }
-
-
 
 
     // Private Methods
     // =========================================================================
 
+    private function dd($data)
+    {
+        echo '<pre>';
+        print_r($data);
+        echo '</pre>';
+        die();
+    }
+
+
     private function checkSettings()
     {
-        // Check our Plugin's settings for the clientId
-        // if ($this->settings->clientId === null) {
-        //     Craft::error('YouTubeSync: No Client ID provided in settings', __METHOD__);
-
-        //     return false;
-        // }
-
-        // // Check our Plugin's settings for the clientSecret
-        // if ($this->settings->clientSecret === null) {
-        //     Craft::error('YouTubeSync: No Client Secret provided in settings', __METHOD__);
-
-        //     return false;
-        // }
-
         // Check our Plugin's settings for the apiKey
         if ($this->settings->apiKey === null) {
             Craft::error('YouTubeSync: No API Key provided in settings', __METHOD__);
@@ -136,97 +116,198 @@ class YouTubeSyncService extends Component
             return false;
         }
 
-        if (!$this->settings->sectionId)
-        {
+        if (!$this->settings->sectionId) {
             Craft::error('YouTubeSync: No Section ID provided in settings', __METHOD__);
 
             return false;
         }
 
-        if (!$this->settings->entryTypeId)
-        {
+        if (!$this->settings->entryTypeId) {
             Craft::error('YouTubeSync: No Entry Type ID provided in settings', __METHOD__);
 
             return false;
         }
 
-        if (!$this->settings->youtubePlaylistsCategoryGroupId)
-        {
+        if (!$this->settings->youtubePlaylistsCategoryGroupId) {
             Craft::error('YouTubeSync: No YouTube Playlists Category Group ID provided in settings', __METHOD__);
 
             return false;
         }
     }
 
-
     private function getAPIData()
     {
         Craft::info('YouTubeSync: Begin sync with API', __METHOD__);
 
+        /*
+         * USER PLAYLISTS
+         */
+
         // Get all YouTube Playlists for the channel specified in settings
-        $client = new Client();
-
-        $response = $client->request('GET', $this->baseUrl . 'smallgroups/groups', [
-            'query'   => [
-                'per_page'  => 500,
-                'tags'      => 'true',
-                'view'      => 'active_future'
-            ],
-            'headers' => [
-                'Content-Type'  => 'application/json',
-                'X-Account'     => 'weareemmanuel',
-                'X-Application' => 'WeAreEmmanuel-Website',
-                'X-Auth'        => $this->settings->apiKey
+        $response = $this->service->playlists->listPlaylists(
+            'snippet',
+            [
+                'channelId'     => $this->settings->channelId,
+                'maxResults'    => 50
             ]
-        ]);
-
-        // Do we have a success response?
-        if ($response->getStatusCode() !== 200)
-        {
-            Craft::error('ChurchSuite: API Reponse Error ' . $response->getStatusCode() . ": " . $response->getReasonPhrase(), __METHOD__);
-
-            return false;
-        }
-
-        $body = json_decode($response->getBody());
-
-        // Are there any results
-        if (count($body->groups) === 0)
-        {
-            Craft::error('ChurchSuite: No results from API Request', __METHOD__);
-
-            return false;
-        }
-
-// echo '<pre>'; print_r($body); echo '</pre>';
-
-        $data = array(
-            'ids'       =>  array(),
-            'smallgroups'    =>  array(),
         );
 
-        // For each Small Group
-        foreach ($body->groups as $group)
-        {
-            // Get the id
-            $smallGroupId = $group->id;
+        $playlists = $response->items;
 
-            // Add this id to our array
-            $data['ids'][] = $smallGroupId;
+        // If we can't find any playlists in this channel there's nothing more we can do
+        if (!empty($playlists)) {
+            $playlistCategories = [];
 
-            // Add this tweet to our array, using the id as the key
-            $data['smallgroups'][$smallGroupId] = $group;
+            // Loop over each playlist
+            foreach ($playlists as $playlist) {
+                // See if this playlist category already exists within Craft
+                $playlistCategories[$playlist->id] = $this->parsePlaylist($playlist);
+            }
         }
 
-        Craft::info('ChurchSuite: Finished getting remote data', __METHOD__);
+        // Now all our playlists are setup as categories we need to get all the videoIds within them
+        // Get all YouTube Playlist Items for each playlist
+        $playlistVideoMeta = [];
+        $playlistVideos = [];
 
+        foreach ($playlistCategories as $youtubePlaylistId => $categoryId) {
+            $playlistVideos[$youtubePlaylistId] = [];
+
+            do {
+                $response = $this->service->playlistItems->listPlaylistItems(
+                    'snippet',
+                    [
+                        'playlistId'    => $youtubePlaylistId,
+                        'maxResults'    => 50
+                    ]
+                );
+                
+                // Loop over each playlist item
+                foreach ($response->items as $item) {
+                    $videoId = $item->snippet->resourceId->videoId;
+
+                    $playlistVideoMeta[$videoId] = $youtubePlaylistId;
+
+                    $playlistVideos[$youtubePlaylistId][] = $videoId; 
+                }
+            } while (!empty($response->nextPage));
+        }
+
+
+        /*
+         * CHANNEL UPLOADS PLAYLIST (aka all videos in channel)
+         */
+
+        // Now we need to get all uploads for this channel
+        // Get the 'uploads' playlist ID
+        $response = $this->service->channels->listChannels(
+            'contentDetails',
+            [
+                'id' => $this->settings->channelId
+            ]
+        );
+
+        $channels = $response->items;
+
+        // Get all playlist items for the 'uploads' playlist
+        $channelVideoMeta = [];
+
+        // Only try to get the uploads videoIds if there is in fact a channel returned
+        if (!empty($channels) && !empty($channels[0]->contentDetails->relatedPlaylists->uploads)) {
+            // Keep requesting playlist items until there are no more pages of items
+            do {
+                $response = $this->service->playlistItems->listPlaylistItems(
+                    'snippet',
+                    [
+                        'playlistId'     => $channels[0]->contentDetails->relatedPlaylists->uploads,
+                        'maxResults'    => 50
+                    ]
+                );
+
+                // Save all the playlist item video ids to an array so we can batch request
+                // the full video data in a future API call    
+                // Loop over each playlist item
+                foreach ($response->items as $item) {
+                    $channelVideoMeta[$item->snippet->resourceId->videoId] = $item->snippet->playlistId;
+                }
+            } while (!empty($response->nextPage));
+        }
+
+        // Now we have an id for every video in the channel let's && an id for every video in a user playlist
+        // let's run a comparison to find all the videos that don't exist within user created playlists
+        $noPlaylistVideoMeta = array_diff_key($channelVideoMeta, $playlistVideoMeta);
+        
+
+        /*
+         * VIDEOS 
+         */
+
+        $playlists = [];
+
+        // Request the full details of all videos associated with each user playlist
+        foreach ($playlistVideos as $youtubePlaylistId => $videoIds) {
+            $playlists[$youtubePlaylistId] = []; 
+
+            // Keep requesting video items until there are no more pages of videos
+            do {
+                $response = $this->service->videos->listVideos(
+                    'snippet, contentDetails',
+                    [
+                        'id'            => implode(',', $videoIds),
+                        'maxResults'    => 50
+                    ]
+                );
+                
+                // Push all items onto the main $videos array grouped by youtubePlaylistId
+                $playlists[$youtubePlaylistId] = array_merge($playlists[$youtubePlaylistId], $response->items);
+            } while (!empty($response->nextPage));
+        }
+
+
+        // Request the full details of all videos NOT associated with each user playlist
+        // Keep requesting video items until there are no more pages of videos
+        // $this->dd($noPlaylistVideoMeta);
+        $videoIds = array_keys($noPlaylistVideoMeta);
+
+        $playlists['noPlaylist'] = []; 
+
+        do {
+            $response = $this->service->videos->listVideos(
+                'snippet, contentDetails',
+                [
+                    'id'            => implode(',', $videoIds),
+                    'maxResults'    => 50
+                ]
+            );
+            
+            // Push all items onto the main $videos array grouped by youtubePlaylistId
+            $playlists['noPlaylist'] = array_merge($playlists['noPlaylist'], $response->items);
+        } while (!empty($response->nextPage));
+
+        // Loop over and process each playlist
+        foreach ($playlists as $playlistId => $videos) {
+            foreach ($videos as $video) {
+                // Pass through the Craft Category Id if it exists
+                $categoryId = (isset($playlistCategories[$playlistId])) ? $playlistCategories[$playlistId] : NULL;
+
+                $this->parseVideo($video, $categoryId);
+            }
+        }
+    
+        Craft::info('YouTubeSync: Finished syncing remote data', __METHOD__);
+
+        // Return all video ids that exists within the channel
+        $data = [
+            'ids' => array_keys($channelVideoMeta)
+        ];
+        
         return $data;
     }
 
 
     private function getLocalData()
     {
-        Craft::info('ChurchSuite: Get local Small Group data', __METHOD__);
+        Craft::info('YouTubeSync: Query for all YouTube Video entries', __METHOD__);
 
         // Create a Craft Element Criteria Model
         $query = Entry::find()
@@ -236,37 +317,35 @@ class YouTubeSyncService extends Component
             ->all();
 
         $data = array(
-            'ids'           =>  [],
-            'smallgroups'   =>  []
+            'ids'      =>  [],
+            'videos'   =>  []
         );
-
-        Craft::info('ChurchSuite: Query for all Small Group entries', __METHOD__);
 
         // For each entry
         foreach ($query as $entry)
         {
-            $smallGroupId = "";
+            $youtubeVideoId = "";
 
-            // Get the id of this Small Group
-            if (isset($entry->smallGroupId))
+            // Get the id of this video
+            if (isset($entry->ytVideoId))
             {
-                $smallGroupId = $entry->smallGroupId;
+                $youtubeVideoId = $entry->ytVideoId;
             }
 
             // Add this id to our array
-            $data['ids'][] = $smallGroupId;
+            $data['ids'][] = $youtubeVideoId;
 
-            // Add this entry id to our array, using the small group id as the key for reference
-            $data['smallgroups'][$smallGroupId] = $entry->id;
+            // Add this entry id to our array, using the video id as the key for reference
+            $data['videos'][$youtubeVideoId] = $entry->id;
         }
 
-        Craft::info('ChurchSuite: Return local data for comparison', __METHOD__);
+        Craft::info('YouTubeSync: Return local data for comparison', __METHOD__);
 
         return $data;
     }
 
 
-    private function createEntry($group)
+    private function createEntry($data, $playlistCategoryId)
     {
         // Create a new instance of the Craft Entry Model
         $entry = new Entry();
@@ -280,11 +359,10 @@ class YouTubeSyncService extends Component
         // Set the author as super admin
         $entry->authorId = 1;
 
-        $this->saveFieldData($entry, $group);
+        $this->saveFieldData($entry, $data, $playlistCategoryId);
     }
 
-
-    private function updateEntry($entryId, $group)
+    private function updateEntry($entryId, $data, $playlistCategoryId)
     {
         // Create a new instance of the Craft Entry Model
         $entry = Entry::find()
@@ -293,9 +371,8 @@ class YouTubeSyncService extends Component
             ->status(null)
             ->one();
 
-        $this->saveFieldData($entry, $group);
+        $this->saveFieldData($entry, $data, $playlistCategoryId);
     }
-
 
     private function closeEntry($entryId)
     {
@@ -312,252 +389,143 @@ class YouTubeSyncService extends Component
         Craft::$app->elements->saveElement($entry);
     }
 
-
-    private function saveFieldData($entry, $group)
+    private function saveFieldData($entry, $data, $playlistCategoryId)
     {
-        // Enabled?
-        $entry->enabled = ($group->embed_visible == "1") ? true : false;
+        // Set all videos to closed by default unless previously enabled
+        $entry->enabled = ($entry->enabled) ? true : false;
 
         // Set the title
-        $entry->title = $group->name;
-
-        $leaders = $this->getLeaders($group);
+        $entry->title = $data->snippet->title;
 
         // Set the other content
         $entry->setFieldValues([
-            'smallGroupId'              => $group->id,
-            'smallGroupIdentifier'      => $group->identifier,
-            'smallGroupName'            => $group->name,
-            'smallGroupDescription'     => $group->description,
-            'smallGroupDay'             => $group->day,
-            'smallGroupFrequency'       => $group->frequency,
-            'smallGroupTime'            => $group->time,
-            'smallGroupStartDate'       => $group->date_start,
-            'smallGroupEndDate'         => $group->date_end,
-            'smallGroupSignupStartDate' => $group->signup_date_start,
-            'smallGroupSignupEndDate'   => $group->signup_date_end,
-            'smallGroupCapacity'        => $group->signup_capacity,
-            'smallGroupNumberMembers'   => $group->no_members,
-            'smallGroupLeaders'         => $leaders,
-            'smallGroupAddress'         => (isset($group->location->address)) ? $group->location->address : '',
-            'smallGroupAddressName'     => (isset($group->location->address_name)) ? $group->location->address_name : '',
-            'smallGroupLatitude'        => (isset($group->location->latitude)) ? $group->location->latitude : '',
-            'smallGroupLongitude'       => (isset($group->location->longitude)) ? $group->location->longitude : '',
-            'smallGroupCategories'      => (isset($group->tags)) ? $this->parseTags($group->tags) : [],
-            'smallGroupSite'            => (isset($group->site)) ? $this->parseSite($group->site) : [],
+            'ytVideoId'     => $data->id,
+            'ytDescription' => (!empty($data->snippet->description)) ? $data->snippet->description : '',
+            'ytDuration'    => $this->convertTime($data->contentDetails->duration),
+            'ytImageMaxRes' => (isset($data->snippet->thumbnails->maxres->url)) ? $data->snippet->thumbnails->maxres->url : $data->snippet->thumbnails->high->url,
+            'ytPlaylists'   => ($playlistCategoryId !== NULL) ? [$playlistCategoryId] : []
         ]);
 
         // Save the entry!
         if (!Craft::$app->elements->saveElement($entry)) {
-            Craft::error('ChurchSuite: Couldn’t save the entry "' . $entry->title . '"', __METHOD__);
+            Craft::error('YouTubeSync: Couldn’t save the entry "' . $entry->title . '"', __METHOD__);
 
             return false;
         }
 
-        // Set the signup start date as post date
-        // $entry->postDate = DateTimeHelper::toDateTime(strtotime($group->signup_date_start));
-
-        // Set the postdate to now
-        $entry->postDate = DateTimeHelper::toDateTime(time());
+        // Set the postdate to the publishedAt date
+        $entry->postDate = DateTimeHelper::toDateTime(strtotime($data->snippet->publishedAt));
 
         // Re-save the entry
         Craft::$app->elements->saveElement($entry);
     }
 
-    private function getLeaders($group)
-    {
-        $leaders = '';
-
-        if (!isset($group->custom_fields)) {
-            return $leaders;
+    private function parseVideo($video, $playlistCategoryId = NULL) {
+        // Does this video already exist as an entry in Craft?
+        if (in_array($video->id, $this->localData['ids'])) {
+            // Entry exists, update it
+            $this->updateEntry($this->localData['videos'][$video->id], $video, $playlistCategoryId);
+        } else {
+            // Entry doesn't exist, create it
+            $this->createEntry($video, $playlistCategoryId);
         }
-
-        foreach ($group->custom_fields as $custom_field) {
-            if ($custom_field->name === 'Leaders') {
-                $leaders = $custom_field->value;
-            }
-        }
-
-        return $leaders;
     }
 
-
-    private function parseTags($tags)
-    {
+    private function parsePlaylist($playlist) {
         // If there is no category group specified, don't do this
-        if (!$this->settings->categoryGroupId) {
-            return [];
-        }
-
-        // Are thre any tags even assigned?
-        if (! $tags) {
-            return [];
-        }
-
-        // Get all existing categories
-        $categories = [];
-
-        // Create a Craft Element Criteria Model
-        $query = Category::find()
-            ->groupId($this->settings->categoryGroupId)
-            ->all();
-
-        // For each category
-        foreach ($query as $category) {
-            // Add its slug and id to our array
-            $categories[$category->slug] = $category->id;
-        }
-
-        $returnIds = [];
-
-        // Loop over tags assigned to the group
-        foreach ($tags as $tag) {
-            // We just need the text
-            $tagSlug = ElementHelper::createSlug($tag->name);
-            $categorySet = false;
-
-            // Does this tag exist already as a category?
-            foreach ($categories as $slug => $id) {
-                // Tag already a category
-                if ($tagSlug === $slug) {
-                    $returnIds[] = $id;
-                    $categorySet = true;
-
-                    break;
-                }
-            }
-
-            // Do we need to create the Category?
-            if (!$categorySet) {
-                // Create the category
-                $newCategory = new Category();
-
-                $newCategory->title = $tag->name;
-                $newCategory->groupId = $this->settings->categoryGroupId;
-
-                // Save the category!
-                if (!Craft::$app->elements->saveElement($newCategory)) {
-                    Craft::error('ChurchSuite: Couldn’t save the category "' . $newCategory->title . '"', __METHOD__);
-
-                    return false;
-                }
-
-                $returnIds[] = $newCategory->id;
-            }
-        }
-
-        return $returnIds;
-    }
-
-
-    private function parseSite($site)
-    {
-        // If there is no category group specified, don't do this
-        if (!$this->settings->sitesCategoryGroupId) {
+        if (! $this->settings->youtubePlaylistsCategoryGroupId) {
             return;
         }
 
-        $categories = [];
-
-        // Create a Craft Element Criteria Model
-        $query = Category::find()
-            ->groupId($this->settings->sitesCategoryGroupId)
-            ->all();
-
-        // For each category
-        foreach ($query as $category) {
-            // Add its churchSuiteSiteId and id to our array
-            $categories[$category->churchSuiteSiteId] = $category->id;
-        }
-
-        $returnIds = [];
-
-        // $siteSlug = ElementHelper::createSlug($site->name);
+        $returnCategoryId = NULL;
         $categorySet = false;
 
-        // Does this site exist already as a category?
-        foreach ($categories as $churchSuiteSiteId => $id) {
-            // Site already a category
-            if ($churchSuiteSiteId == $site->id) {
-                $returnIds[] = $id;
-                $categorySet = true;
+        // Get all existing categories from our playlist category group
+        $query = Category::find()
+            ->groupId($this->settings->youtubePlaylistsCategoryGroupId)
+            ->all();
 
+        // For each existing category
+        foreach ($query as $category) {
+            // If this playlist is already one of our existing categories flag it
+            if ($category->ytPlaylistId == $playlist->id) {
+                $categorySet = true;
                 break;
             }
         }
 
-        // Do we need to create the Category?
         if (!$categorySet) {
             // Create the category
-            $newCategory = new Category();
+            $category = new Category();
 
-            $newCategory->title = $site->name;
-            $newCategory->groupId = $this->settings->sitesCategoryGroupId;
-
-            $newCategory->setFieldValues([
-                'churchSuiteSiteId' => $site->id
-            ]);
-
-            // Save the category!
-            if (!Craft::$app->elements->saveElement($newCategory)) {
-                Craft::error('ChurchSuite: Couldn’t save the category "' . $newCategory->title . '"', __METHOD__);
-
-                return false;
-            }
-
-            $returnIds[] = $newCategory->id;
+            $category->groupId = $this->settings->youtubePlaylistsCategoryGroupId;
         }
 
-        return $returnIds;
+        // Always Set/Update the field values so they remain in sync
+        $category->title = $playlist->snippet->title;
+
+        $category->setFieldValues([
+            'ytPlaylistId'          => $playlist->id,
+            'ytPlaylistDescription' => (!empty($playlist->snippet->description)) ? $playlist->snippet->description : '',
+            'ytPlaylistImageMaxRes' => $playlist->snippet->thumbnails->maxres->url
+        ]);
+
+        // Save the category!
+        if (!Craft::$app->elements->saveElement($category)) {
+            Craft::error('YouTubeSync: Couldn’t save the category "' . $category->title . '"', __METHOD__);
+
+            return false;
+        }
+
+        $returnCategoryId = $category->id;
+
+        return $returnCategoryId;
     }
 
-    
     /**
-     * Returns an authenticated Guzzle client
+     * Returns an authenticated YouTube client
      *
-     * @return Client
+     * @return Google_Client
      */
     private function createClient()
     {
-        $options = [
-            'base_uri' => 'https://www.googleapis.com/youtube/v3/',
-            'query'   => [
-                'key' => $this->settings->clientKey
-            ]
-        ];
+        $client = new Google_Client();
 
-        return new Client($options);
+        $client->setApplicationName("Craft 3 CMS");
+
+        $client->setDeveloperKey($this->settings->apiKey);
+
+        return $client;
     }
 
     /**
-     * Performs a GET request to the YouTube Data API
-     * 
-     * @param       $uri
-     * @param array $options
+     * Returns a YouTube API service
      *
-     * @return array
+     * @return Google_Service_YouTube
      */
-    private function get($uri, array $options = [])
+    private function createService()
     {
         $client = $this->createClient();
 
-        try {
-            $response = $client->request('GET', $uri, $options);
-            $body = (string) $response->getBody();
-            $data = Json::decode($body);
-        } catch (BadResponseException $badResponseException) {
-            $response = $badResponseException->getResponse();
-            $body = (string) $response->getBody();
+        $this->service = new Google_Service_YouTube($client);
+    }
 
-            try {
-                $data = Json::decode($body);
-            } catch (JsonParsingException $e) {
-                throw $badResponseException;
-            }
+    /**
+     * Returns HH:MM:SS formatted time from YouTube duration
+     */
+    private function convertTime($youtubeTime){
+        $di = new DateInterval($youtubeTime);
+        $output = '';
+
+        if ($di->h > 0) {
+            $hours = ($di->h < 10 ) ? '0' . $di->h : $di->h;
+
+            $output .= $hours . ':';
         }
 
-        // $this->checkResponse($response, $data);
+        $mins = ($di->i < 10 ) ? '0' . $di->i : $di->i;
+        $secs = ($di->s < 10 ) ? '0' . $di->s : $di->s;
 
-        return $data;
+        return $output . $mins . ':' . $secs;
     }
 }

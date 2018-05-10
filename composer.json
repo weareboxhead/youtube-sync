@@ -1,17 +1,17 @@
 {
-    "name": "boxhead/church-suite",
-    "description": "Communicate and process data to and from the ChurchSuite API",
+    "name": "boxhead/youtube-sync",
+    "description": "Communicate and process data from the YouTube Data API",
     "type": "craft-plugin",
     "keywords": [
         "craft",
         "cms",
         "craftcms",
         "craft-plugin",
-        "churchsuite"
+        "youtube"
     ],
     "support": {
-        "docs": "https://github.com/weareboxhead/church-suite/blob/master/README.md",
-        "issues": "https://github.com/weareboxhead/church-suite/issues"
+        "docs": "https://github.com/weareboxhead/youtube-sync/blob/master/README.md",
+        "issues": "https://github.com/weareboxhead/youtube-sync/issues"
     },
     "license": "MIT",
     "authors": [
@@ -21,23 +21,24 @@
         }
     ],
     "require": {
-        "craftcms/cms": "^3.0.0-RC4"
+        "craftcms/cms": "^3.0.0",
+        "google/apiclient": "^2.0"
     },
     "autoload": {
         "psr-4": {
-          "boxhead\\churchsuite\\": "src/"
+            "boxhead\\youtubesync\\": "src/"
         }
     },
     "extra": {
-        "name": "ChurchSuite",
-        "handle": "church-suite",
+        "name": "YouTube Sync",
+        "handle": "youtube-sync",
         "schemaVersion": "1.0.0",
         "hasCpSettings": true,
         "hasCpSection": false,
-        "changelogUrl": "https://raw.githubusercontent.com/weareboxhead/church-suite/master/CHANGELOG.md",
+        "changelogUrl": "https://raw.githubusercontent.com/weareboxhead/youtube-sync/master/CHANGELOG.md",
         "components": {
-            "churchSuiteService": "boxhead\\churchsuite\\services\\ChurchSuiteService"
+            "youTubeSyncService": "boxhead\\youtubesync\\services\\YouTubeSyncService"
         },
-        "class": "boxhead\\churchsuite\\ChurchSuite"
+        "class": "boxhead\\youtubesync\\YouTubeSync"
     }
 }

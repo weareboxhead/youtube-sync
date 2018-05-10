@@ -44,7 +44,7 @@ use yii\base\Event;
  * @package   YouTubeSync
  * @since     1.0.0
  *
- * @property  youtubesyncServiceService $youTubeSyncService
+ * @property  youTubeSyncServiceService $youTubeSyncService
  * @property  Settings $settings
  * @method    Settings getSettings()
  */
@@ -149,7 +149,7 @@ class YouTubeSync extends Plugin
         $fieldGroupId = $fieldGroup->id;
 
         // Create the Basic Fields
-        Craft::info('Creating the basic YoutTube Video Fields.', __METHOD__);
+        Craft::info('Creating the basic YouTube Video Fields.', __METHOD__);
 
         $basicFields = [
             [
@@ -160,7 +160,8 @@ class YouTubeSync extends Plugin
             [
                 'handle'    => 'ytDescription',
                 'name'      => 'YouTube Video Description',
-                'type'      => 'craft\fields\PlainText'
+                'type'      => 'craft\fields\PlainText',
+                'multiline' => true
             ],
             [
                 'handle'    => 'ytDuration',
@@ -217,17 +218,18 @@ class YouTubeSync extends Plugin
         $playlistsFields = [
             [
                 'handle'    => 'ytPlaylistId',
-                'name'      => 'YoutTube Playlist Id',
+                'name'      => 'YouTube Playlist Id',
                 'type'      => 'craft\fields\PlainText'
             ],
             [
                 'handle'    => 'ytPlaylistDescription',
-                'name'      => 'YoutTube Playlist Description',
-                'type'      => 'craft\fields\PlainText'
+                'name'      => 'YouTube Playlist Description',
+                'type'      => 'craft\fields\PlainText',
+                'multiline' => true
             ],
             [
                 'handle'    => 'ytPlaylistImageMaxRes',
-                'name'      => 'YoutTube Playlist Imave Max Resolution',
+                'name'      => 'YouTube Playlist Image Max Resolution',
                 'type'      => 'craft\fields\PlainText'
             ]
         ];
@@ -329,55 +331,55 @@ class YouTubeSync extends Plugin
 
         $youtubeVideosEntryLayout->type = Entry::class;
 
-        // // Create the Small Groups Channel
-        // Craft::info('Creating the Videos Channel.', __METHOD__);
+        // Create the Small Groups Channel
+        Craft::info('Creating the Videos Channel.', __METHOD__);
 
-        // $smallGroupsChannelSection                   = new Section();
-        // $smallGroupsChannelSection->name             = 'Small Groups';
-        // $smallGroupsChannelSection->handle           = 'smallGroups';
-        // $smallGroupsChannelSection->type             = Section::TYPE_CHANNEL;
-        // $smallGroupsChannelSection->enableVersioning = false;
+        $youtubeVideosChannelSection                 = new Section();
+        $youtubeVideosChannelSection->name             = 'YouTube Videos';
+        $youtubeVideosChannelSection->handle           = 'youtubeVideos';
+        $youtubeVideosChannelSection->type             = Section::TYPE_CHANNEL;
+        $youtubeVideosChannelSection->enableVersioning = false;
 
-        // // Site-specific settings
-        // $allSiteSettings = [];
+        // Site-specific settings
+        $allSiteSettings = [];
 
-        // foreach (Craft::$app->getSites()->getAllSites() as $site) {
-        //     $siteSettings = new Section_SiteSettings();
-        //     $siteSettings->siteId = $site->id;
-        //     $siteSettings->uriFormat = null;
-        //     $siteSettings->template = null;
-        //     $siteSettings->enabledByDefault = true;
-        //     $siteSettings->hasUrls = false;
+        foreach (Craft::$app->getSites()->getAllSites() as $site) {
+            $siteSettings = new Section_SiteSettings();
+            $siteSettings->siteId = $site->id;
+            $siteSettings->uriFormat = null;
+            $siteSettings->template = null;
+            $siteSettings->enabledByDefault = true;
+            $siteSettings->hasUrls = false;
 
-        //     $allSiteSettings[$site->id] = $siteSettings;
-        // }
+            $allSiteSettings[$site->id] = $siteSettings;
+        }
 
-        // $smallGroupsChannelSection->setSiteSettings($allSiteSettings);
+        $youtubeVideosChannelSection->setSiteSettings($allSiteSettings);
 
-        // $sectionsService = Craft::$app->getSections();
+        $sectionsService = Craft::$app->getSections();
 
-        // if (!$sectionsService->saveSection($smallGroupsChannelSection)) {
-        //     Craft::error('Could not create the Small Groups Channel.', __METHOD__);
+        if (!$sectionsService->saveSection($youtubeVideosChannelSection)) {
+            Craft::error('Could not create the YouTube Videos Channel.', __METHOD__);
 
-        //     return false;
-        // }
+            return false;
+        }
 
-        // // Get the array of entry types for our new section
-        // $smallGroupsEntryTypes = $sectionsService->getEntryTypesBySectionId($smallGroupsChannelSection->id);
+        // Get the array of entry types for our new section
+        $youtubeVideosEntryTypes = $sectionsService->getEntryTypesBySectionId($youtubeVideosChannelSection->id);
 
-        // // There will only be one so get that
-        // $smallGroupsEntryType = $smallGroupsEntryTypes[0];
-        // $smallGroupsEntryType->setFieldLayout($smallGroupsEntryLayout);
+        // There will only be one so get that
+        $youtubeVideosEntryType = $youtubeVideosEntryTypes[0];
+        $youtubeVideosEntryType->setFieldLayout($youtubeVideosEntryLayout);
 
-        // if (!$sectionsService->saveEntryType($smallGroupsEntryType)) {
-        //     Craft::error('Could not update the Small Groups Channel Entry Type.', __METHOD__);
+        if (!$sectionsService->saveEntryType($youtubeVideosEntryType)) {
+            Craft::error('Could not update the YouTube Videos Channel Entry Type.', __METHOD__);
 
-        //     return false;
-        // }
+            return false;
+        }
 
         // Save the settings based on the section and entry type we just created
         Craft::$app->getPlugins()->savePluginSettings($this, [
-            // 'sectionId'                         => $youtubeVideosChannelSection->id,
+            'sectionId'                         => $youtubeVideosChannelSection->id,
             'entryTypeId'                       => $youtubeVideosEntryType->id,
             'youtubePlaylistsCategoryGroupId'   => $playlistsCategoryGroup->id
         ]);

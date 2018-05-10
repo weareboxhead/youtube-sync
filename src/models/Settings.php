@@ -40,6 +40,7 @@ class Settings extends Model
      * @var string
      */
     public $apiKey = '';
+    public $channelId = '';
     public $sectionId = '';
     public $entryTypeId = '';
     public $youtubePlaylistsCategoryGroupId = '';
@@ -61,6 +62,7 @@ class Settings extends Model
     {
         return [
             ['apiKey', 'required'],
+            ['channelId', 'required'],
             ['sectionId', 'required'],
             ['entryTypeId', 'required'],
             ['youtubePlaylistsCategoryGroupId', 'required'],

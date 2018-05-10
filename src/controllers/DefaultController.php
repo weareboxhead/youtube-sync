@@ -59,7 +59,7 @@ class DefaultController extends Controller
      * @return mixed
      */
     public function actionSyncWithRemote() {
-        YouTubeSync::$plugin->youtTubeSyncService->sync();
+        YouTubeSync::$plugin->youTubeSyncService->sync();
 
         $result = 'Syncing remote YouTube data';
 
@@ -75,7 +75,7 @@ class DefaultController extends Controller
     public function actionUpdateLocalData() {
         $tasks = Craft::$app->getTasks();
 
-        if (!$tasks->areTasksPending(CYouTubeSyncTaskTask::class)) {
+        if (!$tasks->areTasksPending(YouTubeSyncTaskTask::class)) {
             $tasks->createTask(YouTubeSyncTaskTask::class);
         }
 
