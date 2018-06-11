@@ -74,8 +74,6 @@ class YouTubeSyncService extends Component
         // Request & sync data from the API
         $this->remoteData = $this->getAPIData();
 
-        $this->dd($this->remoteData);
-
         // Determine which entries we shouldn't have by id
         $removedIds = array_diff($this->localData['ids'], $this->remoteData['ids']);
 
@@ -270,7 +268,6 @@ class YouTubeSyncService extends Component
 
         // Request the full details of all videos NOT associated with each user playlist
         // Keep requesting video items until there are no more pages of videos
-        // $this->dd($noPlaylistVideoMeta);
         $videoIds = array_keys($noPlaylistVideoMeta);
 
         $playlists['noPlaylist'] = []; 
