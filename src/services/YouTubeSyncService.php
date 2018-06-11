@@ -74,6 +74,8 @@ class YouTubeSyncService extends Component
         // Request & sync data from the API
         $this->remoteData = $this->getAPIData();
 
+        $this->dd($this->remoteData);
+
         // Determine which entries we shouldn't have by id
         $removedIds = array_diff($this->localData['ids'], $this->remoteData['ids']);
 
@@ -233,6 +235,8 @@ class YouTubeSyncService extends Component
             } while (!empty($response->nextPage));
         }
 
+        
+
         // Now we have an id for every video in the channel let's && an id for every video in a user playlist
         // let's run a comparison to find all the videos that don't exist within user created playlists
         $noPlaylistVideoMeta = array_diff_key($channelVideoMeta, $playlistVideoMeta);
@@ -285,20 +289,24 @@ class YouTubeSyncService extends Component
         } while (!empty($response->nextPage));
 
         // Loop over and process each playlist
+        $videoIds = [];
+
         foreach ($playlists as $playlistId => $videos) {
             foreach ($videos as $video) {
+                $videoIds[] = $video->id;
+
                 // Pass through the Craft Category Id if it exists
                 $categoryId = (isset($playlistCategories[$playlistId])) ? $playlistCategories[$playlistId] : NULL;
 
                 $this->parseVideo($video, $categoryId);
             }
         }
-    
+
         Craft::info('YouTubeSync: Finished syncing remote data', __METHOD__);
 
         // Return all video ids that exists within the channel
         $data = [
-            'ids' => array_keys($channelVideoMeta)
+            'ids' => $videoIds
         ];
         
         return $data;
@@ -467,7 +475,8 @@ class YouTubeSyncService extends Component
         $category->setFieldValues([
             'ytPlaylistId'          => $playlist->id,
             'ytPlaylistDescription' => (!empty($playlist->snippet->description)) ? $playlist->snippet->description : '',
-            'ytPlaylistImageMaxRes' => $playlist->snippet->thumbnails->maxres->url
+            // 'ytPlaylistImageMaxRes' => $playlist->snippet->thumbnails->maxres->url
+            'ytPlaylistImageMaxRes' => (isset($playlist->snippet->thumbnails->maxres->url)) ? $playlist->snippet->thumbnails->maxres->url : $playlist->snippet->thumbnails->standard->url,
         ]);
 
         // Save the category!
