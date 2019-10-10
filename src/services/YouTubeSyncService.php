@@ -472,8 +472,7 @@ class YouTubeSyncService extends Component
         $category->setFieldValues([
             'ytPlaylistId'          => $playlist->id,
             'ytPlaylistDescription' => (!empty($playlist->snippet->description)) ? $playlist->snippet->description : '',
-            // 'ytPlaylistImageMaxRes' => $playlist->snippet->thumbnails->maxres->url
-            'ytPlaylistImageMaxRes' => (isset($playlist->snippet->thumbnails->maxres->url)) ? $playlist->snippet->thumbnails->maxres->url : $playlist->snippet->thumbnails->standard->url,
+            'ytPlaylistImageMaxRes' => (isset($playlist->snippet->thumbnails->maxres->url)) ? $playlist->snippet->thumbnails->maxres->url : (isset($playlist->snippet->thumbnails->standard->url)) ? $playlist->snippet->thumbnails->standard->url : $playlist->snippet->thumbnails->high->url,
         ]);
 
         // Save the category!
