@@ -1,18 +1,15 @@
 <?php
+
 /**
- * YouTubeSync plugin for Craft CMS 3.x
- *
- * Communicate and process data from the YouTube Data API
- *
  * @link      https://boxhead.io
- * @copyright Copyright (c) 2018 Boxhead
+ * @copyright Copyright (c) Boxhead
  */
 
 namespace boxhead\youtubesync\controllers;
 
+use boxhead\youtubesync\jobs\YouTubeSyncJob;
 use craft\helpers\Queue;
 use craft\web\Controller;
-use boxhead\youtubesync\jobs\YouTubeSyncJob;
 
 /**
  *
@@ -21,7 +18,6 @@ use boxhead\youtubesync\jobs\YouTubeSyncJob;
  */
 class DefaultController extends Controller
 {
-
     // Protected Properties
     // =========================================================================
 

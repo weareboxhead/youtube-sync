@@ -58,7 +58,7 @@ class YouTubeSyncJob extends BaseJob
 
                 // Sync all the playlist items
                 // Queue::push(new YouTubeSyncPlaylistItemsJob($ytPlaylist->id, $playlistCategory, $localData));
-                $playlistVideoData = YouTubeSync::$plugin->youTubeSyncService->getPlaylistItems($ytPlaylist->id, $playlistCategory->id,);
+                $playlistVideoData = YouTubeSync::$plugin->youTubeSyncService->getPlaylistItems($ytPlaylist->id, $playlistCategory->id);
                 $playlistVideoIds = array_merge($playlistVideoIds, $playlistVideoData['playlistVideoIds']);
 
                 Queue::push(new YouTubeSyncPlaylistItemsJob($playlistVideoData['playlistVideos'], $playlistCategory, $localData));

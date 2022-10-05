@@ -6,7 +6,7 @@
  * Communicate and process data from the YouTube Data API
  *
  * @link      https://boxhead.io
- * @copyright Copyright (c) 2018 Boxhead
+ * @copyright Copyright (c) Boxhead
  */
 
 namespace boxhead\youtubesync;
@@ -50,12 +50,12 @@ class YouTubeSync extends Plugin
      /**
      * @inheritdoc
      */
-    // public string $schemaVersion = '1.0.10';
+    // public string $schemaVersion = '1.1.0';
 
     /**
      * @inheritdoc
      */
-    // public string $minVersionRequired = '1.0.9';
+    // public string $minVersionRequired = '1.0.10';
 
     // Public Methods
     // =========================================================================
