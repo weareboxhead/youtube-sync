@@ -1,44 +1,49 @@
 {
-    "name": "boxhead/youtube-sync",
-    "description": "Communicate and process data from the YouTube Data API",
-    "type": "craft-plugin",
-    "keywords": [
-        "craft",
-        "cms",
-        "craftcms",
-        "craft-plugin",
-        "youtube"
-    ],
-    "support": {
-        "docs": "https://github.com/weareboxhead/youtube-sync/blob/master/README.md",
-        "issues": "https://github.com/weareboxhead/youtube-sync/issues"
-    },
-    "license": "MIT",
-    "authors": [
-        {
-            "name": "Boxhead",
-            "homepage": "https://boxhead.io"
-        }
-    ],
-    "require": {
-        "craftcms/cms": "^3.0.0",
-        "google/apiclient": "^2.0"
-    },
-    "autoload": {
-        "psr-4": {
-            "boxhead\\youtubesync\\": "src/"
-        }
-    },
-    "extra": {
-        "name": "YouTube Sync",
-        "handle": "youtube-sync",
-        "schemaVersion": "1.0.0",
-        "hasCpSettings": true,
-        "hasCpSection": false,
-        "changelogUrl": "https://raw.githubusercontent.com/weareboxhead/youtube-sync/master/CHANGELOG.md",
-        "components": {
-            "youTubeSyncService": "boxhead\\youtubesync\\services\\YouTubeSyncService"
-        },
-        "class": "boxhead\\youtubesync\\YouTubeSync"
+  "name": "boxhead/youtube-sync",
+  "description": "Communicate and process data from the YouTube Data API",
+  "version": "1.0.10",
+  "type": "craft-plugin",
+  "keywords": [
+    "craft",
+    "cms",
+    "craftcms",
+    "craft-plugin",
+    "youtube"
+  ],
+  "support": {
+    "docs": "https://github.com/weareboxhead/youtube-sync/blob/master/README.md",
+    "source": "https://github.com/weareboxhead/youtube-sync",
+    "issues": "https://github.com/weareboxhead/youtube-sync/issues"
+  },
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "Boxhead",
+      "homepage": "https://boxhead.io"
     }
+  ],
+  "require": {
+    "craftcms/cms": "^3.0.0",
+    "google/apiclient": "^2.0"
+  },
+  "autoload": {
+    "psr-4": {
+      "boxhead\\youtubesync\\": "src/"
+    }
+  },
+  "extra": {
+    "name": "YouTube Sync",
+    "handle": "youtube-sync",
+    "schemaVersion": "1.0.10",
+    "developer": "Boxhead",
+    "developerUrl": "https://boxhead.io",
+    "documentationUrl": "https://github.com/weareboxhead/youtube-sync/blob/master/README.md",
+    "changelogUrl": "https://raw.githubusercontent.com/weareboxhead/youtube-sync/master/CHANGELOG.md",
+    "hasCpSettings": true,
+    "hasCpSection": false,
+    "components": {
+      "youTubeSyncService": "boxhead\\youtubesync\\services\\YouTubeSyncService"
+    },
+    "class": "boxhead\\youtubesync\\YouTubeSync"
+  }
 }
