@@ -1,0 +1,43 @@
+{% import "_includes/forms" as forms %}
+
+<h1>{{ 'YouTube Actions'|t('youtube-sync') }}</h1>
+
+{% set cols = {
+    form: {
+        type: 'html',
+        heading: 'Action'|t('youtube-sync'),
+    },
+} %}
+
+{% set rows = [] %}
+{% for action in actions %}
+    {% set form %}
+        <div style="margin: 10px 0;">
+            <form class="utility" method="post" accept-charset="UTF-8">
+                <input type="hidden" name="action" value="youtube-sync/default/{{ action.id }}">
+                <input type="hidden" name="utility" value="1">
+
+                {{ redirectInput('utilities/youtube-sync') }}
+                {{ csrfInput() }}
+
+                <p class="light">{{ action.instructions|t('youtube-sync') }}</p>
+
+                <input type="submit" class="btn submit" value="{{ action.label|t('youtube-sync') }}">
+            </form>
+        </div>
+    {% endset %}
+
+    {% set rows = rows|merge([{
+        form: form,
+    }]) %}
+{% endfor %}
+
+{% if rows|length %}
+    {{ forms.editableTableField({
+        name: 'actions',
+        id: 'actions',
+        cols: cols,
+        rows: rows,
+        staticRows: true,
+    }) }}
+{% endif %}

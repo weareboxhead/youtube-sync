@@ -12,7 +12,7 @@ use boxhead\youtubesync\YouTubeSync;
 
 class YouTubeCloseMissingEntriesJob extends BaseJob
 {
-    private $closeEntryIds;
+    private ?array $closeEntryIds;
 
     /**
      * @inheritdoc
@@ -32,14 +32,14 @@ class YouTubeCloseMissingEntriesJob extends BaseJob
         if ($totalEntries) {
             // Loop over each YT playlist
             foreach ($this->closeEntryIds as $i => $entryId) {
-                $this->setProgress(
-                    $queue,
-                    $i / $totalEntries,
-                    \Craft::t('app', '{step, number} of {total, number}', [
-                        'step' => $i + 1,
-                        'total' => $totalEntries,
-                    ])
-                );
+                // $this->setProgress(
+                //     $queue,
+                //     $i / $totalEntries,
+                //     \Craft::t('app', '{step, number} of {total, number}', [
+                //         'step' => $i + 1,
+                //         'total' => $totalEntries,
+                //     ])
+                // );
 
                 // Close any entries for which there is no live data...
                 YouTubeSync::$plugin->youTubeSyncService->closeEntry($entryId);

@@ -11,6 +11,7 @@ use craft\helpers\DateTimeHelper;
 use Google_Client;
 use Google_Service_YouTube;
 use DateInterval;
+use JetBrains\PhpStorm\ArrayShape;
 
 /**
  * @author    Boxhead
@@ -33,7 +34,7 @@ class YouTubeSyncService extends Component
         $this->checkSettings();
     }
 
-    public function getLocalData($limit = 2000)
+    public function getLocalData($limit = 2000): array
     {
         // Create a Craft Element Criteria Model
         $query = Entry::find()
@@ -66,7 +67,7 @@ class YouTubeSyncService extends Component
         return $data;
     }
 
-    public function getPlaylists()
+    public function getPlaylists(): array
     {
         // Setup the YouTube connection
         $this->createService();
@@ -90,10 +91,11 @@ class YouTubeSyncService extends Component
         return $items;
     }
 
-    public function parsePlaylist($playlist) {
+    public function parsePlaylist($playlist): mixed
+    {
         // If there is no category group specified, don't do this
         if (! $this->settings->youtubePlaylistsCategoryGroupId) {
-            return;
+            return false;
         }
 
         $categorySet = false;
@@ -138,7 +140,7 @@ class YouTubeSyncService extends Component
         return $category;
     }
 
-    public function getPlaylistItems($ytPlaylistId, $categoryId)
+    public function getPlaylistItems($ytPlaylistId, $categoryId): array
     {
         // Setup the YouTube connection
         $this->createService();
@@ -189,7 +191,7 @@ class YouTubeSyncService extends Component
         ];
     }
 
-    public function getNoPlaylistItems($noPlaylistVideoIds)
+    public function getNoPlaylistItems($noPlaylistVideoIds): array
     {
         // Setup the YouTube connection
         $this->createService();
@@ -216,7 +218,7 @@ class YouTubeSyncService extends Component
         return $noPlaylistVideos;
     }
 
-    public function getAllChannelVideos()
+    public function getAllChannelVideos(): array
     {
         // Setup the YouTube connection
         $this->createService();
@@ -260,16 +262,7 @@ class YouTubeSyncService extends Component
         return $channelVideoIds;
     }
 
-    // public function closeEntries($entryIds)
-    // {
-    //     if (count($entryIds)) {
-    //         foreach ($entryIds as $id) {
-    //             $this->closeEntry($id);
-    //         }
-    //     }
-    // }
-
-    public function closeEntry($entryId)
+    public function closeEntry($entryId): void
     {
         // Create a new instance of the Craft Entry Model
         $entry = Entry::find()
@@ -284,16 +277,18 @@ class YouTubeSyncService extends Component
         Craft::$app->elements->saveElement($entry);
     }
 
-    public function parseVideo($video, $entryId = null, $playlistCategoryId = null)
+    public function parseVideo($video, $entryId = null, $playlistCategoryId = null): void
     {
         // Search for existing entry
-        $entry = Entry::find()
-            ->sectionId($this->settings->sectionId)
-            ->id($entryId)
-            ->status(null)
-            ->one();
+        if ($entryId) {
+            $entry = Entry::find()
+                ->sectionId($this->settings->sectionId)
+                ->id($entryId)
+                ->status(null)
+                ->one();
+        }
 
-        if (!$entry) {
+        if (!$entryId || !$entry) {
             // Create a new instance of the Craft Entry Model
             $entry = new Entry();
 
@@ -314,7 +309,7 @@ class YouTubeSyncService extends Component
     // Private Methods
     // =========================================================================
 
-    private function dd($data)
+    private function dd($data): void
     {
         echo '<pre>';
         print_r($data);
@@ -323,7 +318,7 @@ class YouTubeSyncService extends Component
     }
 
 
-    private function checkSettings()
+    private function checkSettings(): bool
     {
         $this->settings = YouTubeSync::$plugin->getSettings();
 
@@ -358,9 +353,11 @@ class YouTubeSyncService extends Component
 
             return false;
         }
+
+        return true;
     }
 
-    private function saveFieldData($entry, $data, $playlistCategoryId)
+    private function saveFieldData($entry, $data, $playlistCategoryId): bool
     {
         // Set all videos to closed by default unless previously enabled
         $entry->enabled = ($entry->enabled) ? true : false;
@@ -389,6 +386,8 @@ class YouTubeSyncService extends Component
 
         // Re-save the entry
         Craft::$app->elements->saveElement($entry);
+
+        return true;
     }
 
     /**
@@ -396,7 +395,7 @@ class YouTubeSyncService extends Component
      *
      * @return Google_Service_YouTube
      */
-    private function createService()
+    private function createService(): void
     {
         $client = new Google_Client();
 
@@ -410,7 +409,7 @@ class YouTubeSyncService extends Component
     /**
      * Returns HH:MM:SS formatted time from YouTube duration
      */
-    private function convertTime($youtubeTime)
+    private function convertTime($youtubeTime): string
     {
         $di = new DateInterval($youtubeTime);
         $output = '';

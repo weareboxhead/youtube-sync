@@ -1,7 +1,7 @@
 <?php
 
 /**
- * YouTube Sync plugin for Craft CMS 3.x
+ * YouTube Sync plugin for Craft CMS 4.x
  *
  * Communicate and process data from the YouTube Data API
  *
@@ -11,21 +11,24 @@
 
 namespace boxhead\youtubesync;
 
-use boxhead\youtubesync\services\YouTubeSyncService as YouTubeSyncServiceService;
-use boxhead\youtubesync\models\Settings;
 use Craft;
-use craft\base\Plugin;
-use craft\services\Plugins;
-use craft\events\PluginEvent;
-use craft\web\UrlManager;
-use craft\events\RegisterUrlRulesEvent;
-use craft\models\FieldGroup;
-use craft\models\CategoryGroup;
-use craft\models\CategoryGroup_SiteSettings;
-use craft\models\Section;
-use craft\models\Section_SiteSettings;
-use craft\elements\Entry;
 use yii\base\Event;
+use craft\base\Model;
+use craft\base\Plugin;
+use craft\elements\Entry;
+use craft\models\Section;
+use craft\web\UrlManager;
+use craft\services\Plugins;
+use craft\models\FieldGroup;
+use craft\events\PluginEvent;
+use craft\services\Utilities;
+use craft\models\CategoryGroup;
+use craft\models\Section_SiteSettings;
+use craft\events\RegisterUrlRulesEvent;
+use boxhead\youtubesync\models\Settings;
+use craft\models\CategoryGroup_SiteSettings;
+use craft\events\RegisterComponentTypesEvent;
+use boxhead\youtubesync\utilities\SyncUtility;
 
 /**
  *
@@ -45,7 +48,7 @@ class YouTubeSync extends Plugin
     /**
      * @inheritdoc
      */
-    public $hasCpSettings = true;
+    public bool $hasCpSettings = true;
 
      /**
      * @inheritdoc
@@ -55,11 +58,11 @@ class YouTubeSync extends Plugin
     /**
      * @inheritdoc
      */
-    // public string $minVersionRequired = '1.0.10';
+    public string $minVersionRequired = '1.0.0';
 
     // Public Methods
     // =========================================================================
-    public function init()
+    public function init(): void
     {
         parent::init();
         self::$plugin = $this;
@@ -69,7 +72,7 @@ class YouTubeSync extends Plugin
             UrlManager::class,
             UrlManager::EVENT_REGISTER_SITE_URL_RULES,
             function (RegisterUrlRulesEvent $event) {
-                $event->rules['youtube-sync/sync']   = 'youtube-sync/default/sync-with-remote';
+                $event->rules['youtube-sync/sync']   = 'youtube-sync/default/sync';
             }
         );
 
@@ -82,6 +85,15 @@ class YouTubeSync extends Plugin
                     // We were just installed
                     $this->buildFieldSectionStructure();
                 }
+            }
+        );
+
+        // Register CP Utility
+        Event::on(
+            Utilities::class,
+            Utilities::EVENT_REGISTER_UTILITY_TYPES,
+            function (RegisterComponentTypesEvent $event) {
+                $event->types[] = SyncUtility::class;
             }
         );
 
@@ -98,7 +110,7 @@ class YouTubeSync extends Plugin
     // Protected Methods
     // =========================================================================
 
-    protected function buildFieldSectionStructure()
+    protected function buildFieldSectionStructure(): mixed
     {
         // Create the Small Groups Field Group
         Craft::info('Creating the YouTube Videos Field Group.', __METHOD__);
@@ -360,7 +372,7 @@ class YouTubeSync extends Plugin
      *
      * @return \craft\base\Model|null
      */
-    protected function createSettingsModel()
+    protected function createSettingsModel(): ?Model
     {
         return new Settings();
     }

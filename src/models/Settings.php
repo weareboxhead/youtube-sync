@@ -1,18 +1,7 @@
 <?php
-/**
- * YouTubeSync plugin for Craft CMS 3.x
- *
- * Communicate and process data from the YouTube Data API
- *
- * @link      https://boxhead.io
- * @copyright Copyright (c) 2018 Boxhead
- */
 
 namespace boxhead\youtubesync\models;
 
-use boxhead\youtubesync\YouTubeSync;
-
-use Craft;
 use craft\base\Model;
 
 /**
@@ -22,13 +11,8 @@ use craft\base\Model;
  *
  * Models are containers for data. Just about every time information is passed
  * between services, controllers, and templates in Craft, it’s passed via a model.
- *
- * https://craftcms.com/docs/plugins/models
- *
- * @author    Boxhead
- * @package   YouTubeSync
- * @since     1.0.0
  */
+
 class Settings extends Model
 {
     // Public Properties
@@ -39,11 +23,11 @@ class Settings extends Model
      *
      * @var string
      */
-    public $apiKey = '';
-    public $channelId = '';
-    public $sectionId = '';
-    public $entryTypeId = '';
-    public $youtubePlaylistsCategoryGroupId = '';
+    public string $apiKey = '';
+    public string $channelId = '';
+    public string $sectionId = '';
+    public string $entryTypeId = '';
+    public string $youtubePlaylistsCategoryGroupId = '';
 
     // Public Methods
     // =========================================================================
@@ -58,7 +42,8 @@ class Settings extends Model
      *
      * @return array
      */
-    public function rules()
+    // public function rules()
+    protected function defineRules(): array
     {
         return [
             ['apiKey', 'required'],

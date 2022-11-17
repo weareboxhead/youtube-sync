@@ -14,14 +14,16 @@ class YouTubeCreateUpdateEntryJob extends BaseJob
 {
     private $video;
     private $entryId;
+    private $playlistCategoryId;
 
     /**
      * @inheritdoc
      */
-    public function __construct($video, $entryId = null)
+    public function __construct($video, $entryId = null, $playlistCategoryId = null)
     {
         $this->video = $video;
         $this->entryId = $entryId;
+        $this->playlistCategoryId = $playlistCategoryId;
     }
 
     /**
@@ -30,7 +32,7 @@ class YouTubeCreateUpdateEntryJob extends BaseJob
     public function execute($queue): void
     {
         // Create or Update Craft entry correlating to this YouTube video
-        YouTubeSync::$plugin->youTubeSyncService->parseVideo($this->video, $this->entryId);
+        YouTubeSync::$plugin->youTubeSyncService->parseVideo($this->video, $this->entryId, $this->playlistCategoryId);
     }
 
     /**

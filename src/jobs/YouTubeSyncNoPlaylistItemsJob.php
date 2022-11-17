@@ -14,8 +14,8 @@ use boxhead\youtubesync\jobs\YouTubeCreateUpdateEntryJob;
 
 class YouTubeSyncNoPlaylistItemsJob extends BaseJob
 {
-    private $noPlaylistVideoIds;
-    private $localData;
+    private ?array $noPlaylistVideoIds;
+    private ?array $localData;
 
     /**
      * @inheritdoc

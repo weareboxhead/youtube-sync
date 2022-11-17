@@ -1,12 +1,4 @@
 <?php
-/**
- * YouTubeSync plugin for Craft CMS 3.x
- *
- * Communicate and process data from the YouTube Data API
- *
- * @link      https://boxhead.io
- * @copyright Copyright (c) 2018 Boxhead
- */
 
 /**
  * YouTubeSync config.php
@@ -23,8 +15,6 @@
  */
 
 return [
-
     // This controls blah blah blah
     "someAttribute" => true,
-
 ];
