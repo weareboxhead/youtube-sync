@@ -23,7 +23,7 @@
     }
   ],
   "require": {
-    "craftcms/cms": "^4.0.0",
+    "craftcms/cms": "^3.7.68",
     "google/apiclient": "^2.0"
   },
   "autoload": {
