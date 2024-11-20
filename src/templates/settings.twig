@@ -37,3 +37,11 @@
     name: 'youtubePlaylistsCategoryGroupId',
     value: settings['youtubePlaylistsCategoryGroupId']})
 }}
+
+{{ forms.textField({
+    label: 'Ignore YouTube Videos Older Than X Months',
+    instructions: 'Enter the number of months to ignore videos older than when running UPDATES. Leave blank to sync all videos.',
+    id: 'ignoreVideosOlderThan',
+    name: 'ignoreVideosOlderThan',
+    value: settings['ignoreVideosOlderThan']})
+}}

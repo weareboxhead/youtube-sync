@@ -28,6 +28,7 @@ class Settings extends Model
     public string $sectionId = '';
     public string $entryTypeId = '';
     public string $youtubePlaylistsCategoryGroupId = '';
+    public string $ignoreVideosOlderThan = '12';
 
     // Public Methods
     // =========================================================================
@@ -51,6 +52,7 @@ class Settings extends Model
             ['sectionId', 'required'],
             ['entryTypeId', 'required'],
             ['youtubePlaylistsCategoryGroupId', 'required'],
+            ['ignoreVideosOlderThan', 'required'],
         ];
     }
 }

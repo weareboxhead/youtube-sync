@@ -53,6 +53,11 @@ class YouTubeSyncJob extends BaseJob
                     ])
                 );
 
+                // If playlist was published more than 3 years ago, skip it
+                // if (strtotime($ytPlaylist->snippet->publishedAt) < strtotime('-3 years')) {
+                //     continue;
+                // }
+
                 // Create/Update a Craft playlist category
                 $playlistCategory = YouTubeSync::$plugin->youTubeSyncService->parsePlaylist($ytPlaylist);
 

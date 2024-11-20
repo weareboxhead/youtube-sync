@@ -66,8 +66,7 @@ class DefaultController extends Controller
 
         if ($success) {
             Craft::$app->getSession()->setNotice(Craft::t('youtube-sync', $message));
-        }
-        else {
+        } else {
             Craft::$app->getSession()->setError(Craft::t('youtube-sync', $message));
         }
 

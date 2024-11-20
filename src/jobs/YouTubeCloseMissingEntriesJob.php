@@ -31,7 +31,7 @@ class YouTubeCloseMissingEntriesJob extends BaseJob
 
         if ($totalEntries) {
             // Loop over each YT playlist
-            foreach ($this->closeEntryIds as $i => $entryId) {
+            // foreach ($this->closeEntryIds as $i => $entryId) {
                 // $this->setProgress(
                 //     $queue,
                 //     $i / $totalEntries,
@@ -42,8 +42,10 @@ class YouTubeCloseMissingEntriesJob extends BaseJob
                 // );
 
                 // Close any entries for which there is no live data...
-                YouTubeSync::$plugin->youTubeSyncService->closeEntry($entryId);
-            }
+            //     YouTubeSync::$plugin->youTubeSyncService->closeEntry($entryId);
+            // }
+
+            YouTubeSync::$plugin->youTubeSyncService->closeEntries($this->closeEntryIds);
         }
     }
 

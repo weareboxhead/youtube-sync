@@ -262,6 +262,23 @@ class YouTubeSyncService extends Component
         return $channelVideoIds;
     }
 
+    public function closeEntries(array $entryIds): void
+    {
+        // Create a new instance of the Craft Entry Model
+        $entries = Entry::find()
+            ->sectionId($this->settings->sectionId)
+            ->id($entryIds)
+            ->status(null)
+            ->all();
+
+        foreach ($entries as $entry) {
+            $entry->enabled = false;
+
+            // Re-save the entry
+            Craft::$app->elements->saveElement($entry);
+        }
+    }
+
     public function closeEntry($entryId): void
     {
         // Create a new instance of the Craft Entry Model
@@ -286,6 +303,15 @@ class YouTubeSyncService extends Component
                 ->id($entryId)
                 ->status(null)
                 ->one();
+        }
+
+        // If entry is greater than months provided in settings, don't update
+        if (
+            $this->settings->ignoreVideosOlderThan &&
+            isset($entry) &&
+            $entry->postDate->diff(new \DateTime())->m > $this->settings->ignoreVideosOlderThan
+        ) {
+            return;
         }
 
         if (!$entryId || !$entry) {
